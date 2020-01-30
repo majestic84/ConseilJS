@@ -29,7 +29,7 @@ let operationQueues = {}
 export namespace TezosNodeWriter {
     /**
      * Send a POST request to a Tezos node.
-     * 
+     *
      * @param {string} server Which Tezos node to go against
      * @param {string} command RPC route to invoke
      * @param {object} payload Payload to submit
@@ -220,7 +220,7 @@ export namespace TezosNodeWriter {
 
     /**
      * Master function for creating and sending all supported types of operations.
-     * 
+     *
      * @param {string} server Tezos node to connect to
      * @param {Operation[]} operations The operations to create and send
      * @param {KeyStore} keyStore Key pair along with public key hash
@@ -239,11 +239,11 @@ export namespace TezosNodeWriter {
     }
 
     /**
-     * 
-     * @param server 
-     * @param operations 
-     * @param keyStore 
-     * @param derivationPath 
+     *
+     * @param server
+     * @param operations
+     * @param keyStore
+     * @param derivationPath
      * @param {number} batchDelay Number of seconds to wait before sending transactions off.
      */
     export function queueOperation(server: string, operations: TezosP2PMessageTypes.Operation[], keyStore: KeyStore, derivationPath: string = '', batchDelay: number = 25): void {
@@ -303,17 +303,20 @@ export namespace TezosNodeWriter {
 
     /**
      * Creates and sends a transaction operation.
-     * 
+     *
      * @param {string} server Tezos node to connect to
      * @param {KeyStore} keyStore Key pair along with public key hash
      * @param {String} to Destination public key hash
      * @param {number} amount Amount to send
      * @param {number} fee Fee to use
      * @param {string} derivationPath BIP44 Derivation Path if signed with hardware, empty if signed with software
+     * @param {number} counter Optional counter for sending batch transactions before the operation is confirmed
      * @returns {Promise<OperationResult>} Result of the operation
      */
-    export async function sendTransactionOperation(server: string, keyStore: KeyStore, to: string, amount: number, fee: number, derivationPath: string = '') {
-        const counter = await TezosNodeReader.getCounterForAccount(server, keyStore.publicKeyHash) + 1;
+    export async function sendTransactionOperation(server: string, keyStore: KeyStore, to: string, amount: number, fee: number, derivationPath: string = '', counter: number) {
+        if (!counter) {
+            counter = await TezosNodeReader.getCounterForAccount(server, keyStore.publicKeyHash) + 1;
+        }
 
         const transaction: TezosP2PMessageTypes.Transaction = {
             destination: to,
@@ -333,7 +336,7 @@ export namespace TezosNodeWriter {
 
     /**
      * Creates and sends a delegation operation.
-     * 
+     *
      * @param {string} server Tezos node to connect to
      * @param {KeyStore} keyStore Key pair along with public key hash
      * @param {string} delegate Account address to delegate to, alternatively, '' or undefined if removing delegation
@@ -360,7 +363,7 @@ export namespace TezosNodeWriter {
 
     /**
      * Internally calls sendDelegationOperation with a blank delegate.
-     * 
+     *
      * @param {string} server Tezos node to connect to
      * @param {KeyStore} keyStore Key pair along with public key hash
      * @param {string} delegator Account address to delegate from
@@ -413,7 +416,7 @@ export namespace TezosNodeWriter {
             parsedCode = JSON.parse(code);
             parsedStorage = JSON.parse(storage); // TODO: handle empty storage
         }
-   
+
         const counter = await TezosNodeReader.getCounterForAccount(server, keyStore.publicKeyHash) + 1;
 
         const origination: TezosP2PMessageTypes.Origination = {
@@ -571,7 +574,7 @@ export namespace TezosNodeWriter {
      * Operation dry-run to get consumed gas and storage numbers
      *
      * @param {string} server Tezos node to connect to
-     * @param {string} chainid 
+     * @param {string} chainid
      * @param {KeyStore} keyStore Key pair along with public key hash
      * @param {string} to Contract address
      * @param {number} amount Amount to transfer along with the invocation
@@ -625,7 +628,7 @@ export namespace TezosNodeWriter {
     /**
      * This function checks if the server response contains an error. There are multiple formats for errors coming
      * back from the server, this method attempts to normalized them for downstream parsing.
-     * 
+     *
      * @param {string} response Text response from a Tezos RPC services
      * @returns Error text or `undefined`
      */
